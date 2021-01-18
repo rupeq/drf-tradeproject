@@ -1,0 +1,34 @@
+version: "3.7"
+
+services:
+  db:
+    image: postgres
+    container_name: postgres_db
+    env_file:
+      - db_keys.env
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data/
+  web:
+    build: .
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    command: redis-server
+    volumes:
+    - .trading-redis:/data
+  celery:
+    build: .
+    command: celery -A trading worker -B
+    depends_on:
+      - redis
+      - web
+      
+volumes:
+  static_volume:
